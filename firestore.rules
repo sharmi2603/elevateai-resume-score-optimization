@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: reports (subcollection of users)
+    // Fields: userId, fileName, overallScore, categoryScores, analysis, bullets, createdAt
+    //
+    // Collection: jobMatches (subcollection of users)
+    // Fields: userId, reportId, jobTitle, matchPercentage, missingSkills, missingKeywords, suggestions, createdAt
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['userId', 'overallScore', 'createdAt']) &&
+             data.overallScore is number &&
+             data.overallScore >= 0 && data.overallScore <= 100;
+    }
+
+    function isValidJobMatch(data) {
+      return data.keys().hasAll(['userId', 'matchPercentage', 'createdAt']) &&
+             data.matchPercentage is number;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+
+      match /reports/{reportId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidReport(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /jobMatches/{matchId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidJobMatch(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

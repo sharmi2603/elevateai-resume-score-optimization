@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "ResumeReport": {
+      "title": "Resume Report",
+      "description": "Detailed analysis of a resume",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fileName": { "type": "string" },
+        "overallScore": { "type": "number" },
+        "categoryScores": {
+          "type": "object",
+          "properties": {
+            "ats": { "type": "number" },
+            "impact": { "type": "number" },
+            "brevity": { "type": "number" },
+            "style": { "type": "number" },
+            "structure": { "type": "number" }
+          }
+        },
+        "analysis": { "type": "object" },
+        "bullets": { "type": "array", "items": { "type": "object" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "overallScore", "createdAt"]
+    },
+    "JobMatch": {
+      "title": "Job Match",
+      "description": "Comparison between resume and job description",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "reportId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "matchPercentage": { "type": "number" },
+        "missingSkills": { "type": "array", "items": { "type": "string" } },
+        "missingKeywords": { "type": "array", "items": { "type": "string" } },
+        "suggestions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "matchPercentage", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/users/{userId}/reports/{reportId}": {
+      "schema": "ResumeReport",
+      "description": "Resume analysis reports"
+    },
+    "/users/{userId}/jobMatches/{matchId}": {
+      "schema": "JobMatch",
+      "description": "Job description matching results"
+    }
+  }
+}
